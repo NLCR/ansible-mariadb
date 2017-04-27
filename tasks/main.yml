@@ -1,0 +1,48 @@
+---
+- name: Provision
+  package: 
+    name: mariadb-server, MySQL-python
+    state: '{{ mariadb_provision | default("present") }}'
+  tags: provision
+
+- name: MariaDB is running thru restarts
+  service: 
+    name: mariadb
+    state: started
+    enabled: yes
+  tags: service
+
+- name: 'Database: {{ mariadb_name }} exists'
+  mysql_db:
+    name: '{{ mariadb_name }}'
+    state: present
+  when: mariadb_name is defined
+  tags: import_db
+
+- name: 'SQL file: {{ mariadb_import }} transfered to /tmp'
+  copy:
+    src: '{{ mariadb_import }}'
+    dest: '/tmp/{{ mariadb_import }}'
+  when:
+    - mariadb_import is defined
+    - mariadb_name is defined
+  tags: import_db
+
+- name: 'Importing /tmp/{{ mariadb_import }} to {{ mariadb_name }}'
+  mysql_db:
+    name: '{{ mariadb_name }}'
+    state: import
+    target: '/tmp/{{ mariadb_import }}'
+  when:
+    - mariadb_import is defined
+    - mariadb_name is defined
+  tags: import_db
+  ignore_errors: True # Not idempotent - so ignoring for now, there is Ansible module related trouble: https://github.com/ansible/ansible/issues/20196
+
+- name: 'GRANT {{ mariadb_name }}{{ mariadb_priv | default(".*:SELECT") }} TO {{ mariadb_user }}'
+  mysql_user:
+    name: '{{ mariadb_user | default("vagrant") }}'
+    priv: '{{ mariadb_name }}{{ mariadb_priv | default(".*:SELECT")}}'
+    password: '{{ mariadb_pass | default("vagrant") }}'
+  when: mariadb_name is defined
+  tags: rights
