@@ -2,7 +2,7 @@
 - name: Provision
   package: 
     name: mariadb-server, MySQL-python
-    state: '{{ mariadb_provision | default("present") }}'
+    state: '{{ mariadb.provision | default("present") }}'
   tags: provision
 
 - name: MariaDB is running thru restarts
@@ -12,37 +12,37 @@
     enabled: yes
   tags: service
 
-- name: 'Database: {{ mariadb_name }} exists'
+- name: 'Database: {{ mariadb.name }} exists'
   mysql_db:
-    name: '{{ mariadb_name }}'
+    name: '{{ mariadb.name }}'
     state: present
-  when: mariadb_name is defined
+  when: mariadb.name is defined
   tags: import_db
 
-- name: 'SQL file: {{ mariadb_import }} transfered to /tmp'
+- name: 'SQL file: {{ mariadb.import }} transfered to /tmp'
   copy:
-    src: '{{ mariadb_import }}'
-    dest: '/tmp/{{ mariadb_import }}'
+    src: '{{ mariadb.import }}'
+    dest: '/tmp/{{ mariadb.import }}'
   when:
-    - mariadb_import is defined
-    - mariadb_name is defined
+    - mariadb.import is defined
+    - mariadb.name is defined
   tags: import_db
 
-- name: 'Importing /tmp/{{ mariadb_import }} to {{ mariadb_name }}'
+- name: 'Importing /tmp/{{ mariadb.import }} to {{ mariadb.name }}'
   mysql_db:
-    name: '{{ mariadb_name }}'
+    name: '{{ mariadb.name }}'
     state: import
-    target: '/tmp/{{ mariadb_import }}'
+    target: '/tmp/{{ mariadb.import }}'
   when:
-    - mariadb_import is defined
-    - mariadb_name is defined
+    - mariadb.import is defined
+    - mariadb.name is defined
   tags: import_db
   ignore_errors: True # Not idempotent - so ignoring for now, there is Ansible module related trouble: https://github.com/ansible/ansible/issues/20196
 
-- name: 'GRANT {{ mariadb_name }}{{ mariadb_priv | default(".*:SELECT") }} TO {{ mariadb_user }}'
+- name: 'GRANT {{ mariadb.name }}{{ mariadb.priv | default(".*:SELECT") }} TO {{ mariadb.user }}'
   mysql_user:
-    name: '{{ mariadb_user | default("vagrant") }}'
-    priv: '{{ mariadb_name }}{{ mariadb_priv | default(".*:SELECT")}}'
-    password: '{{ mariadb_pass | default("vagrant") }}'
-  when: mariadb_name is defined
+    name: '{{ mariadb.user | default("vagrant") }}'
+    priv: '{{ mariadb.name }}{{ mariadb_priv | default(".*:SELECT")}}'
+    password: '{{ mariadb.pass | default("vagrant") }}'
+  when: mariadb.name is defined
   tags: rights
