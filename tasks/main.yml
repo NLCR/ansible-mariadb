@@ -1,12 +1,12 @@
 ---
 - name: Provision
-  package: 
-    name: mariadb-server, MySQL-python
+  package:
+    name: mariadb-server, MySQL-python, bzip2
     state: '{{ mariadb.provision | default("present") }}'
   tags: provision
 
 - name: MariaDB is running thru restarts
-  service: 
+  service:
     name: mariadb
     state: started
     enabled: yes
@@ -42,6 +42,7 @@
 - name: 'GRANT {{ mariadb.name }}{{ mariadb.priv | default(".*:SELECT") }} TO {{ mariadb.user }}'
   mysql_user:
     name: '{{ mariadb.user | default("vagrant") }}'
+    host: '{{ mariadb.host | default("localhost") }}'
     priv: '{{ mariadb.name }}{{ mariadb_priv | default(".*:SELECT")}}'
     password: '{{ mariadb.pass | default("vagrant") }}'
   when: mariadb.name is defined
