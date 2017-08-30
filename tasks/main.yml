@@ -42,7 +42,7 @@
 - name: 'GRANT {{ mariadb.name }}{{ mariadb.priv | default(".*:SELECT") }} TO {{ mariadb.user }}'
   mysql_user:
     name: '{{ mariadb.user | default("vagrant") }}'
-    host: '{{ mariadb.host | default("localhost") }}'
+    host: '{{ mariadb.allow | default("localhost") }}'
     priv: '{{ mariadb.name }}{{ mariadb_priv | default(".*:SELECT")}}'
     password: '{{ mariadb.pass | default("vagrant") }}'
   when: mariadb.name is defined
